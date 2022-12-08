@@ -34,11 +34,11 @@ public class HelloWorld : MonoBehaviour
     int lastSample = 0;
     AudioSource audioSource;
 
-#if PLATFORM_ANDROID || PLATFORM_IOS
-    // Required to manifest microphone permission, cf.
-    // https://docs.unity3d.com/Manual/android-manifest.html
-    private Microphone mic;
-#endif
+    #if PLATFORM_ANDROID || PLATFORM_IOS
+        // Required to manifest microphone permission, cf.
+        // https://docs.unity3d.com/Manual/android-manifest.html
+        private Microphone mic;
+    #endif
 
     private byte[] ConvertAudioClipDataToInt16ByteArray(float[] data)
     {
@@ -71,6 +71,13 @@ public class HelloWorld : MonoBehaviour
         {
             message = e.Result.Text;
             Debug.Log("RecognizedHandler: " + message);
+
+            var intent = "Show me my energy consumption.";
+
+            if (message == intent)
+            {
+                Debug.Log("MAKE VISIBLE");
+            }
         }
     }
 
@@ -135,26 +142,28 @@ public class HelloWorld : MonoBehaviour
         else
         {
             // Continue with normal initialization, Text and Button objects are present.
-#if PLATFORM_ANDROID
-            // Request to use the microphone, cf.
-            // https://docs.unity3d.com/Manual/android-RequestingPermissions.html
-            message = "Waiting for mic permission";
-            if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
-            {
-                Permission.RequestUserPermission(Permission.Microphone);
-            }
-#elif PLATFORM_IOS
-            if (!Application.HasUserAuthorization(UserAuthorization.Microphone))
-            {
-                Application.RequestUserAuthorization(UserAuthorization.Microphone);
-            }
-#else
-            micPermissionGranted = true;
-            message = "Click button to recognize speech";
-#endif
-            config = SpeechConfig.FromSubscription("", "");
+            #if PLATFORM_ANDROID
+                // Request to use the microphone, cf.
+                // https://docs.unity3d.com/Manual/android-RequestingPermissions.html
+                message = "Waiting for mic permission";
+                if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+                {
+                    Permission.RequestUserPermission(Permission.Microphone);
+                }
+            #elif PLATFORM_IOS
+                if (!Application.HasUserAuthorization(UserAuthorization.Microphone))
+                {
+                    Application.RequestUserAuthorization(UserAuthorization.Microphone);
+                }
+            #else
+                micPermissionGranted = true;
+                message = "Click button to recognize speech";
+            #endif
+
+            config = SpeechConfig.FromSubscription();
             pushStream = AudioInputStream.CreatePushStream();
             audioInput = AudioConfig.FromStreamInput(pushStream);
+
             recognizer = new SpeechRecognizer(config, audioInput);
             recognizer.Recognizing += RecognizingHandler;
             recognizer.Recognized += RecognizedHandler;
@@ -166,6 +175,7 @@ public class HelloWorld : MonoBehaviour
                 Debug.Log("DeviceName: " + device);                
             }
             audioSource = GameObject.Find("MyAudioSource").GetComponent<AudioSource>();
+
         }
     }
 
@@ -180,19 +190,19 @@ public class HelloWorld : MonoBehaviour
 
     void FixedUpdate()
     {
-#if PLATFORM_ANDROID
-        if (!micPermissionGranted && Permission.HasUserAuthorizedPermission(Permission.Microphone))
-        {
-            micPermissionGranted = true;
-            message = "Click button to recognize speech";
-        }
-#elif PLATFORM_IOS
-        if (!micPermissionGranted && Application.HasUserAuthorization(UserAuthorization.Microphone))
-        {
-            micPermissionGranted = true;
-            message = "Click button to recognize speech";
-        }
-#endif
+        #if PLATFORM_ANDROID
+                if (!micPermissionGranted && Permission.HasUserAuthorizedPermission(Permission.Microphone))
+                {
+                    micPermissionGranted = true;
+                    message = "Click button to recognize speech";
+                }
+        #elif PLATFORM_IOS
+                if (!micPermissionGranted && Application.HasUserAuthorization(UserAuthorization.Microphone))
+                {
+                    micPermissionGranted = true;
+                    message = "Click button to recognize speech";
+                }
+        #endif
         lock (threadLocker)
         {
             if (recoButton != null)
