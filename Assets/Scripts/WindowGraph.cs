@@ -41,7 +41,7 @@ public class WindowGraph : MonoBehaviour
         for (int i = 0; i < valueList.Count; i++)
         {
             float xPosition = xSize + i * xSize;
-            float yPosition = (valueList[i] / yMaximum) * graphHeight;
+            float yPosition = (valueList[i] / yMaximum) * graphHeight + 50f;
             GameObject circleGameObject = CreateCircle(new Vector2(xPosition, yPosition));
 
             if (lastCircleGameObject != null)
@@ -63,10 +63,10 @@ public class WindowGraph : MonoBehaviour
         Vector2 dir = (dotPositionB - dotPositionA).normalized;
         float distance = Vector2.Distance(dotPositionA, dotPositionB);
         float angle = Vector3.Angle(dir, transform.forward);
+        // float angle = Vector2.Angle(dotPositionA, dotPositionB);
         rectTransform.anchorMin = new Vector2(0, 0);
         rectTransform.anchorMax = new Vector2(0, 0);
-        rectTransform.sizeDelta = new Vector2(distance, 3f);
-        rectTransform.anchoredPosition = dotPositionA;
+        rectTransform.sizeDelta = new Vector2(distance, 1f);
         rectTransform.anchoredPosition = dotPositionA + dir * distance * .5f;
         rectTransform.localEulerAngles = new Vector3(0, 0, angle);
     }

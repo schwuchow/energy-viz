@@ -49,6 +49,15 @@ public class SpeechRecognition : MonoBehaviour
         private Microphone mic;
     #endif
 
+    // Energy Devices
+    [SerializeField]
+    public GameObject tv;
+    [SerializeField]
+    public GameObject lamp;
+
+    bool recognizedTv = false;
+    bool recognizedLamp = false;
+
     private byte[] ConvertAudioClipDataToInt16ByteArray(float[] data)
     {
         MemoryStream dataStream = new MemoryStream();
@@ -81,11 +90,18 @@ public class SpeechRecognition : MonoBehaviour
             message = e.Result.Text;
             Debug.Log("RecognizedHandler: " + message);
 
-            var intent = "Show me my energy consumption.";
+            var intentTV = "Energy consumption TV.";
+            var intentLamp = "Energy consumption lamp.";
 
-            if (message == intent)
+            Debug.Log("RECOGNIZED");
+
+            if (message.ToLower() == intentTV.ToLower())
             {
-                Debug.Log("MAKE VISIBLE");
+                Debug.Log("MAKE TV CONSUMPTION VISIBLE");
+                recognizedTv = true;
+            } else if (message.ToLower() == intentLamp.ToLower()) {
+                Debug.Log("MAKE LAMP CONSUMPTION VISIBLE");
+                recognizedLamp = true;
             }
         }
     }
@@ -97,6 +113,17 @@ public class SpeechRecognition : MonoBehaviour
             message = e.ErrorDetails.ToString();
             Debug.Log("CanceledHandler: " + message);
         }
+    }
+
+    public void ShowEnergyConsumption()
+    {
+        Debug.Log("SHOW ENERGY CONSUMPTION");
+
+        if (recognizedTv) {
+            tv.GetComponent<Device>().visualization.SetActive(true);
+        } else if (recognizedLamp) {
+            lamp.GetComponent<Device>().visualization.SetActive(true);
+        } 
     }
 
     public async void ButtonClick()
@@ -192,6 +219,9 @@ public class SpeechRecognition : MonoBehaviour
             }
             audioSource = GameObject.Find("MyAudioSource").GetComponent<AudioSource>();
 
+            tv.GetComponent<Device>().visualization.SetActive(false);
+            lamp.GetComponent<Device>().visualization.SetActive(false);
+
         }
     }
 
@@ -244,10 +274,18 @@ public class SpeechRecognition : MonoBehaviour
                 byte[] ba = ConvertAudioClipDataToInt16ByteArray(samples);
                 if (ba.Length != 0)
                 {
-                    Debug.Log("pushStream.Write pos:" + Microphone.GetPosition(Microphone.devices[0]).ToString() + " length: " + ba.Length.ToString());
+                    // Debug.Log("pushStream.Write pos:" + Microphone.GetPosition(Microphone.devices[0]).ToString() + " length: " + ba.Length.ToString());
                     pushStream.Write(ba);
                 }
             }
+
+            if (recognizedTv || recognizedLamp)
+            {
+                ShowEnergyConsumption();
+
+                recognizedTv = recognizedLamp = false;
+            }
+
             lastSample = pos;
         }
         else if (!Microphone.IsRecording(Microphone.devices[0]) && recognitionStarted == false)
