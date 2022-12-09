@@ -18,7 +18,16 @@ using UnityEngine.iOS;
 using System.Collections;
 #endif
 
-public class HelloWorld : MonoBehaviour
+/*
+DATA CLASS: holds the JSON data
+*/
+[System.Serializable]
+public class CognitiveService {
+    public string cognitiveServiceKey;
+    public string cognitiveServiceRegion;
+}
+
+public class SpeechRecognition : MonoBehaviour
 {
     private bool micPermissionGranted = false;
     public Text outputText;
@@ -160,7 +169,14 @@ public class HelloWorld : MonoBehaviour
                 message = "Click button to recognize speech";
             #endif
 
-            config = SpeechConfig.FromSubscription();
+            /*
+            Read Speech SDK CognitiveService keys from json file to create a config for the SpeechRecognizer
+            */
+            string jsonPath = Application.dataPath + "/Scripts/keys.json";
+            string jsonStr = File.ReadAllText(jsonPath);
+            CognitiveService keys = JsonUtility.FromJson<CognitiveService>(jsonStr);
+
+            config = SpeechConfig.FromSubscription(keys.cognitiveServiceKey, keys.cognitiveServiceRegion);
             pushStream = AudioInputStream.CreatePushStream();
             audioInput = AudioConfig.FromStreamInput(pushStream);
 
